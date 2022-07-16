@@ -39,6 +39,7 @@ to quickly create a Cobra application.`,
 		if len(viper.GetString("ca.name")) == 0 {
 			log.Fatal("ca.name is empty! make sure you configure that")
 		}
+
 		err := certs.CreateCA()
 		if err != nil {
 			log.WithFields(log.Fields{
@@ -60,8 +61,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	initCmd.Flags().BoolP("force", "f", false, "force initialization, overwriting any existing files")
-	initCmd.Flags().DurationP("lifetime", "d", time.Hour*24*365*10, "cert authority lifetime")
+	initCmd.Flags().DurationP("lifetime", "d", time.Hour*24*365*1, "cert authority lifetime")
 	viper.BindPFlag("force", initCmd.Flags().Lookup("force"))
 	viper.BindPFlag("lifetime", initCmd.Flags().Lookup("lifetime"))
-
 }

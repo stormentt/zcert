@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
 	"os"
 	"time"
@@ -40,6 +41,20 @@ func checkFile(f string, force bool) error {
 	return nil
 }
 
+func getPkix() pkix.Name {
+	/*
+		should support:
+			Country, Organization, OrganizationalUnit []string
+			Locality, Province                        []string
+			StreetAddress, PostalCode                 []string
+			SerialNumber, CommonName                  string
+	*/
+
+	return pkix.Name{
+		CommonName: viper.GetString("ca.name"),
+	}
+}
+
 func CreateCA() error {
 	certDir := viper.GetString("storage.path")
 	force := viper.GetBool("force")
@@ -68,16 +83,8 @@ func CreateCA() error {
 	}
 
 	ca := &x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject: pkix.Name{
-			Organization:  []string{viper.GetString("ca.organization")},
-			Country:       []string{viper.GetString("ca.country")},
-			Province:      []string{viper.GetString("ca.province")},
-			Locality:      []string{viper.GetString("ca.locality")},
-			StreetAddress: []string{viper.GetString("ca.address")},
-			PostalCode:    []string{viper.GetString("ca.postal")},
-			CommonName:    viper.GetString("ca.name"),
-		},
+		SerialNumber:          big.NewInt(1),
+		Subject:               getPkix(),
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().Add(viper.GetDuration("lifetime")),
 		IsCA:                  true,
@@ -113,18 +120,31 @@ func CreateCA() error {
 		Bytes: privbytes,
 	})
 
-	keyout, err := os.Create(caKeyPath)
+	keyout, err := os.OpenFile(caKeyPath, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return err
 	}
 
-	certout, err := os.Create(caCertPath)
+	certout, err := os.OpenFile(caCertPath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 
-	keyout.Write(caPrivKeyPEM.Bytes())
-	certout.Write(caPEM.Bytes())
+	if _, err = io.Copy(keyout, caPrivKeyPEM); err != nil {
+		return err
+	}
+
+	if _, err = io.Copy(certout, caPEM); err != nil {
+		return err
+	}
+
+	if err = keyout.Close(); err != nil {
+		return err
+	}
+
+	if err = certout.Close(); err != nil {
+		return err
+	}
 
 	return nil
 }
