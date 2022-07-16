@@ -15,3 +15,15 @@ zcert client sign /path/to/certficate.crt
 
 ## Server
 The zcert server is an HTTP api that uses blake2b hmacs to validate requests. 
+
+## Configuration
+The configuration file for zcert is zcert.yml.
+
+```yml
+storage:
+  path: "/var/zcert"
+authkey: blahblahblah
+loglevel: ERROR
+ca:
+  name: "ca.common.name"
+```
