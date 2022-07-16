@@ -16,9 +16,9 @@ func CheckAuth(c *gin.Context) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
-		}).Debug("invalid X-HMAC header")
+		}).Debug("invalid Content-HMAC header")
 
-		c.String(http.StatusBadRequest, "invalid X-HMAC header")
+		c.String(http.StatusBadRequest, "invalid Content-HMAC header")
 		c.Abort()
 		return
 	}
@@ -48,7 +48,7 @@ func CheckAuth(c *gin.Context) {
 	}
 
 	if !match {
-		c.String(http.StatusUnauthorized, "X-HMAC header does not match computed HMAC")
+		c.String(http.StatusUnauthorized, "Content-HMAC header does not match computed HMAC")
 		c.Abort()
 		return
 	}

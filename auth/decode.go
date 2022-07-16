@@ -12,7 +12,7 @@ type NoHMACError struct{}
 type InvalidHMACLengthError struct{}
 
 func (e *NoHMACError) Error() string {
-	return "no HMAC provided in X-HMAC header"
+	return "no HMAC provided in Content-HMAC header"
 }
 
 func (e *InvalidHMACLengthError) Error() string {
@@ -20,7 +20,7 @@ func (e *InvalidHMACLengthError) Error() string {
 }
 
 func GetHMACFromHeader(c *gin.Context) ([]byte, error) {
-	encodedHMAC := c.GetHeader("X-HMAC")
+	encodedHMAC := c.GetHeader("Content-HMAC")
 	if len(encodedHMAC) == 0 {
 		return nil, &NoHMACError{}
 	}
