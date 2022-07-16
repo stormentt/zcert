@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/stormentt/zcert/util"
 )
@@ -12,7 +13,7 @@ import (
 var CaCert *x509.Certificate
 var CaKey ed25519.PrivateKey
 
-func Serve() error {
+func setup() error {
 	certDir := viper.GetString("storage.path")
 	caKeyPath := fmt.Sprintf("%s/%s", certDir, "ca.key")
 	caCertPath := fmt.Sprintf("%s/%s", certDir, "ca.crt")
@@ -28,6 +29,20 @@ func Serve() error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func Serve() error {
+	err := setup()
+	if err != nil {
+		return err
+	}
+
+	r := gin.Default()
+	r.GET("/ca", getCA)
+	r.POST("/sign", signCert)
+	r.Run()
 
 	return nil
 }
