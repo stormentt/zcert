@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +15,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/stormentt/zcert/util"
 )
 
 type FileExistsError struct {
@@ -103,23 +103,19 @@ func CreateCA() error {
 		return err
 	}
 
-	caPEM := new(bytes.Buffer)
-	pem.Encode(caPEM, &pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: caBytes,
-	})
+	crtBuf := new(bytes.Buffer)
+	keyBuf := new(bytes.Buffer)
 
-	caPrivKeyPEM := new(bytes.Buffer)
-	privbytes, err := x509.MarshalPKCS8PrivateKey(privkey)
-	if err != nil {
+	// Encode Keys
+	if err = util.EncodeX509Cert(crtBuf, caBytes); err != nil {
 		return err
 	}
 
-	pem.Encode(caPrivKeyPEM, &pem.Block{
-		Type:  "PRIVATE KEY",
-		Bytes: privbytes,
-	})
+	if err = util.EncodeEd25519Priv(keyBuf, privkey); err != nil {
+		return err
+	}
 
+	// Create Files
 	keyout, err := os.OpenFile(caKeyPath, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return err
@@ -130,14 +126,16 @@ func CreateCA() error {
 		return err
 	}
 
-	if _, err = io.Copy(keyout, caPrivKeyPEM); err != nil {
+	// Write Files
+	if _, err = io.Copy(keyout, keyBuf); err != nil {
 		return err
 	}
 
-	if _, err = io.Copy(certout, caPEM); err != nil {
+	if _, err = io.Copy(certout, crtBuf); err != nil {
 		return err
 	}
 
+	// Close Files
 	if err = keyout.Close(); err != nil {
 		return err
 	}
