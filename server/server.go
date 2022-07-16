@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"github.com/stormentt/zcert/middleware"
 	"github.com/stormentt/zcert/util"
 )
 
@@ -41,7 +42,10 @@ func Serve() error {
 
 	r := gin.Default()
 	r.GET("/ca", getCA)
-	r.POST("/sign", signCert)
+
+	authRoutes := r.Group("/", middleware.CheckAuth)
+	authRoutes.POST("/sign", signCert)
+
 	r.Run()
 
 	return nil

@@ -1,45 +1,46 @@
 package server
 
 import (
-	"encoding/json"
 	"io/ioutil"
+	"time"
 
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"github.com/stormentt/zcert/util"
 )
+
+type signCertReq struct {
+	CSR      string        `json:"csr"`
+	Duration time.Duration `json:"duration"`
+}
 
 func signCert(c *gin.Context) {
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		log.WithFields(log.Fields{
 			"error": err,
-		})
+		}).Error("unable to read certificate from http body")
 
+		c.String(http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	err = util.VerifyResp(body)
+	var req signCertReq
+	if err = c.BindJSON(&req); err != nil {
+		c.String(http.StatusBadRequest, "invalid sign-csr json")
+		return
+	}
+
+	csrBytes, err := util.DecodeB64(req.CSR)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "invalid authorization",
-		})
-
+		c.String(http.StatusBadRequest, "invalid sign-csr base64")
 		return
 	}
 
-	var j util.AuthResp
-	json.Unmarshal(body, &j)
-
-	switch csrb64 := j.Data["csr"].(type) {
-	case string:
-		_, err := util.DecodeB64(csrb64)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err,
-			})
-			return
-		}
-	}
+	log.WithFields(log.Fields{
+		"body":     len(body),
+		"csrBytes": len(csrBytes),
+	}).Info("got sign-csr request")
 }

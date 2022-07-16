@@ -5,7 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stormentt/zcert/auth"
 	"github.com/stormentt/zcert/util"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func getCA(c *gin.Context) {
@@ -13,14 +16,16 @@ func getCA(c *gin.Context) {
 	err := util.EncodeX509Cert(buf, CaCert.Raw)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		log.WithFields(log.Fields{
 			"error": err,
-		})
+		}).Error("unable to encode CACert")
+
+		c.String(http.StatusInternalServerError, "internal server error")
 
 		return
 	}
 
-	util.AuthorizedResp(c, gin.H{
-		"ca": util.EncodeB64(buf.Bytes()),
-	})
+	calcHMAC, err := auth.CalcHMAC(buf.Bytes())
+	c.Header("X-HMAC", util.EncodeB64(calcHMAC))
+	c.DataFromReader(http.StatusOK, int64(buf.Len()), "application/x-x509-ca-cert", buf, nil)
 }
