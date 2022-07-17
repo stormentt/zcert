@@ -1,0 +1,14 @@
+authkey: "blah blah blah" # 32 character max
+
+ca:
+  name: "authority.example.com" # the common name for the certificate authority
+
+lifetime: 8760h # lifetime of the certificate authority
+
+loglevel: INFO
+
+server: http://localhost:8080 # where the client should connect to
+
+storage:
+  database: /var/zcert/db.sqlite3
+  path: /var/zcert/certs # where to store the certificate authority
