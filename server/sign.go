@@ -2,6 +2,8 @@ package server
 
 import (
 	"bytes"
+	"fmt"
+	"time"
 
 	"net/http"
 
@@ -23,6 +25,32 @@ func signCert(c *gin.Context) {
 		c.String(http.StatusBadRequest, "invalid sign-csr json")
 		return
 	}
+
+	if req.Nonce == "" {
+		c.String(http.StatusBadRequest, "no nonce in json")
+		return
+	}
+
+	if len(req.Nonce) > 32 {
+		c.String(http.StatusBadRequest, "nonce too long. nonce must be at most 32 characters")
+		return
+	}
+
+	if req.RequestTime.IsZero() {
+		c.String(http.StatusBadRequest, "bad request_time in json")
+		return
+	}
+
+	if time.Since(req.RequestTime) > time.Minute {
+		c.String(http.StatusBadRequest, fmt.Sprintf("request_time too old (%s ago)", time.Since(req.RequestTime)))
+		return
+	}
+
+	if noncemanager.Seen(req.Nonce) {
+		c.String(http.StatusUnauthorized, "nonce reused")
+		return
+	}
+	noncemanager.Record(req.Nonce)
 
 	parsedCSR, err := certs.ParseCSR(req.CSR)
 	if err != nil {

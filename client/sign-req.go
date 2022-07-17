@@ -13,6 +13,7 @@ import (
 	"github.com/stormentt/zcert/auth"
 	"github.com/stormentt/zcert/certs"
 	"github.com/stormentt/zcert/util"
+	"github.com/stormentt/zcert/util/random"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -30,6 +31,10 @@ func SignCSR(w io.Writer, r io.Reader) error {
 			Lifetime:   time.Hour * 24 * 365,
 			ClientAuth: true,
 			ServerAuth: false,
+		},
+		SecurityBlock: apitypes.SecurityBlock{
+			Nonce:       random.AlphaNum(32),
+			RequestTime: time.Now(),
 		},
 	}
 

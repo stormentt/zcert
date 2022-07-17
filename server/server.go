@@ -1,39 +1,19 @@
 package server
 
 import (
-	"crypto/ed25519"
-	"crypto/x509"
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/stormentt/zcert/certs"
 	"github.com/stormentt/zcert/middleware"
-	"github.com/stormentt/zcert/util"
+	"github.com/stormentt/zcert/server/nonces"
 )
 
-var CaCert *x509.Certificate
-var CaKey ed25519.PrivateKey
+var noncemanager nonces.NonceManager
 
 func setup() error {
-	certDir := viper.GetString("storage.path")
-	caKeyPath := fmt.Sprintf("%s/%s", certDir, "ca.key")
-	caCertPath := fmt.Sprintf("%s/%s", certDir, "ca.crt")
-
-	var err error
-
-	CaCert, err = util.DecodeX509CertFromPath(caCertPath)
-	if err != nil {
-		return err
-	}
-
-	CaKey, err = util.DecodeEd25519Priv(caKeyPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return certs.LoadCA()
 }
 
 func ginLogger(c *gin.Context) {
@@ -50,6 +30,7 @@ func ginLogger(c *gin.Context) {
 		"status":  c.Writer.Status(),
 	}).Info("")
 }
+
 func Serve() error {
 	err := setup()
 	if err != nil {

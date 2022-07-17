@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stormentt/zcert/auth"
+	"github.com/stormentt/zcert/certs"
 	"github.com/stormentt/zcert/util"
 
 	log "github.com/sirupsen/logrus"
@@ -13,7 +14,7 @@ import (
 
 func getCA(c *gin.Context) {
 	buf := new(bytes.Buffer)
-	err := util.EncodeX509Cert(buf, CaCert.Raw)
+	err := util.EncodeX509Cert(buf, certs.CA.Raw)
 
 	if err != nil {
 		log.WithFields(log.Fields{
