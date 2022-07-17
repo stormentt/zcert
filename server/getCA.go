@@ -27,6 +27,15 @@ func getCA(c *gin.Context) {
 	}
 
 	calcHMAC, err := auth.CalcHMAC(buf.Bytes())
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("unable to calculate hmac of cert authority")
+
+		c.String(http.StatusInternalServerError, "internal server error")
+
+		return
+	}
 	c.Header("Content-HMAC", util.EncodeB64(calcHMAC))
 	c.DataFromReader(http.StatusOK, int64(buf.Len()), "application/x-x509-ca-cert", buf, nil)
 }

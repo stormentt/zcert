@@ -21,7 +21,7 @@ func (e *NotEd25519KeyError) Error() string {
 type NoPEMDataError struct{}
 
 func (e *NoPEMDataError) Error() string {
-	return fmt.Sprintf("no PEM encoded data in source")
+	return "no PEM encoded data in source"
 }
 
 func DecodeX509CertFromPath(path string) (*x509.Certificate, error) {

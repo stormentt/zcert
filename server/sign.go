@@ -69,6 +69,16 @@ func signCert(c *gin.Context) {
 
 	buf := bytes.NewBuffer(signedCSR)
 	calcHMAC, err := auth.CalcHMAC(buf.Bytes())
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("unable to calculate hmac of signed certificate response")
+
+		c.String(http.StatusInternalServerError, "internal server error")
+
+		return
+	}
+
 	c.Header("Content-HMAC", util.EncodeB64(calcHMAC))
 	c.DataFromReader(http.StatusOK, int64(buf.Len()), "application/x-x509-user-cert", buf, nil)
 }
