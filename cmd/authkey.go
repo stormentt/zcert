@@ -23,7 +23,7 @@ import (
 // authkeyCmd represents the authkey command
 var authkeyCmd = &cobra.Command{
 	Use:   "authkey",
-	Short: "",
+	Short: "Interact with authentication keys",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()

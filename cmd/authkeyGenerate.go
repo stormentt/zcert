@@ -30,7 +30,7 @@ var saveKey bool
 // authkeyGenerateCmd represents the authkeyGenerate command
 var authkeyGenerateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "generates an authkey suitable for use with message authentication codes",
+	Short: "Generate an authentication key suitable for use with message authentication codes",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		genkey := random.AlphaNum(32)

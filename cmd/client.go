@@ -23,7 +23,7 @@ import (
 // clientCmd represents the client command
 var clientCmd = &cobra.Command{
 	Use:   "client",
-	Short: "a collection of commands to interact with a zcert server",
+	Short: "Interact with a zcert server",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()

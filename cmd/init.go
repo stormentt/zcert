@@ -29,7 +29,7 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "A brief description of your command",
+	Short: "Initialize the database and the certificate authority",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(viper.GetString("ca.name")) == 0 {

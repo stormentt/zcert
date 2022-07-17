@@ -32,7 +32,7 @@ var force bool
 // signCmd represents the sign command
 var signCmd = &cobra.Command{
 	Use:   "sign",
-	Short: "asks the server to sign a certificate signing request",
+	Short: "Ask the server to sign a certificate signing request",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		var in io.Reader
