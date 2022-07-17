@@ -92,7 +92,9 @@ func init() {
 	cobra.OnInitialize(initLogging)
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/zcert.yaml)")
-	rootCmd.PersistentFlags().StringP("log-level", "v", "INFO", "level of verbosity (DEBUG, INFO, WARN, ERROR, FATAL)")
+	rootCmd.PersistentFlags().StringP("verbosity", "v", "INFO", "level of verbosity (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)")
+	rootCmd.PersistentFlags().StringP("authkey", "a", "", "key to use for message authentication codes")
 
-	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("log-level"))
+	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("verbosity"))
+	viper.BindPFlag("authkey", rootCmd.PersistentFlags().Lookup("authkey"))
 }
