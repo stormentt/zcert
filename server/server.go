@@ -23,7 +23,7 @@ func setup() error {
 
 	var err error
 
-	CaCert, err = util.DecodeX509Cert(caCertPath)
+	CaCert, err = util.DecodeX509CertFromPath(caCertPath)
 	if err != nil {
 		return err
 	}

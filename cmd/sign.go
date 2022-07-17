@@ -17,27 +17,25 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
+	"os"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stormentt/zcert/client"
 )
 
 // signCmd represents the sign command
 var signCmd = &cobra.Command{
 	Use:   "sign",
 	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("sign called")
+		if err := client.SignCSR(os.Stdout, os.Stdin); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
 func init() {
 	clientCmd.AddCommand(signCmd)
-	signCmd.Flags().StringP("csr", "c", "", "Certificate Signing Request")
 }

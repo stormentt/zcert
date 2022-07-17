@@ -1,46 +1,61 @@
 package server
 
 import (
-	"io/ioutil"
-	"time"
+	"bytes"
 
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/stormentt/zcert/apitypes"
+	"github.com/stormentt/zcert/auth"
+	"github.com/stormentt/zcert/certs"
 	"github.com/stormentt/zcert/util"
 )
 
-type signCertReq struct {
-	CSR      string        `json:"csr"`
-	Duration time.Duration `json:"duration"`
-}
-
 func signCert(c *gin.Context) {
-	body, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
+	var req apitypes.SignCertReq
+	if err := c.BindJSON(&req); err != nil {
 		log.WithFields(log.Fields{
 			"error": err,
-		}).Error("unable to read certificate from http body")
+		}).Debug("invalid sign-csr json")
 
-		c.String(http.StatusInternalServerError, "internal server error")
-		return
-	}
-
-	var req signCertReq
-	if err = c.BindJSON(&req); err != nil {
 		c.String(http.StatusBadRequest, "invalid sign-csr json")
 		return
 	}
 
-	csrBytes, err := util.DecodeB64(req.CSR)
+	parsedCSR, err := certs.ParseCSR(req.CSR)
 	if err != nil {
-		c.String(http.StatusBadRequest, "invalid sign-csr base64")
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Debug("invalid csr base64")
+
+		c.String(http.StatusBadRequest, "invalid csr base64")
 		return
 	}
 
-	log.WithFields(log.Fields{
-		"body":     len(body),
-		"csrBytes": len(csrBytes),
-	}).Info("got sign-csr request")
+	if err = certs.ValidateCSR(parsedCSR); err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Debug("csr signature invalid")
+
+		c.String(http.StatusBadRequest, "csr signature invalid")
+		return
+	}
+
+	signedCSR, err := certs.SignCSR(parsedCSR, req.Params)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("unable to sign csr")
+
+		c.String(http.StatusInternalServerError, "internal server error")
+
+		return
+	}
+
+	buf := bytes.NewBuffer(signedCSR)
+	calcHMAC, err := auth.CalcHMAC(buf.Bytes())
+	c.Header("Content-HMAC", util.EncodeB64(calcHMAC))
+	c.DataFromReader(http.StatusOK, int64(buf.Len()), "application/x-x509-user-cert", buf, nil)
 }

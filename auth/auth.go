@@ -10,6 +10,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type HMACMismatchError struct{}
+
+func (e *HMACMismatchError) Error() string {
+	return "hmac mismatch error"
+}
+
 const HMACLength = 32 // 256 / 8
 
 func CheckHMAC(expectedHMAC []byte, body []byte) (bool, error) {

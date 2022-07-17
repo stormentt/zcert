@@ -17,7 +17,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stormentt/zcert/certs"
+	"github.com/stormentt/zcert/db"
 	"github.com/stormentt/zcert/server"
 )
 
@@ -32,7 +35,23 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		server.Serve()
+		if err := certs.LoadCA(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Fatal("unable to load CA")
+		}
+
+		if err := db.InitDB(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Fatal("unable to init DB")
+		}
+
+		if err := server.Serve(); err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).Fatal("unable to run server")
+		}
 	},
 }
 

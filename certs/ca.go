@@ -18,6 +18,9 @@ import (
 	"github.com/stormentt/zcert/util"
 )
 
+var CA *x509.Certificate
+var CAPrivKey ed25519.PrivateKey
+
 type FileExistsError struct {
 	path string
 }
@@ -141,6 +144,26 @@ func CreateCA() error {
 	}
 
 	if err = certout.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LoadCA() error {
+	certDir := viper.GetString("storage.path")
+	caCrtPath := fmt.Sprintf("%s/%s", certDir, "ca.crt")
+	caKeyPath := fmt.Sprintf("%s/%s", certDir, "ca.key")
+
+	var err error
+
+	CA, err = util.DecodeX509CertFromPath(caCrtPath)
+	if err != nil {
+		return err
+	}
+
+	CAPrivKey, err = util.DecodeEd25519Priv(caKeyPath)
+	if err != nil {
 		return err
 	}
 
